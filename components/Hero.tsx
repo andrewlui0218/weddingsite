@@ -1,9 +1,8 @@
 import React from 'react';
 
 const Hero: React.FC = () => {
-  // Replace this URL with your local image path (e.g., '/images/wedding-cover.jpg')
-  // The current layout is optimized for the cherry blossom photo provided.
-  const bgImage = "https://picsum.photos/id/433/1920/1080"; 
+  // Ensure your image is located at public/images/hero-bg.jpg
+  const bgImage = "/images/hero-bg.jpg"; 
 
   return (
     <section 
@@ -11,10 +10,7 @@ const Hero: React.FC = () => {
       className="relative h-screen min-h-[700px] flex items-start justify-center pt-24 md:pt-32 bg-cover bg-no-repeat bg-fixed"
       style={{ 
         backgroundImage: `url(${bgImage})`,
-        // Adjusted from 'center 80%' to 'center 25%'. 
-        // '25%' ensures the top part of the image (trees/arch) is visible, 
-        // pushing the couple (who are centrally located) lower in the viewport.
-        // This creates a safe zone at the top for the text.
+        // Adjusted to keep the couple visible while providing space for text at the top
         backgroundPosition: 'center 25%' 
       }}
     >

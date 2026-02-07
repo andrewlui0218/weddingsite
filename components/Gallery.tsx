@@ -5,9 +5,12 @@ const Gallery: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'hk' | 'japan'>('hk');
   const { ref, isVisible } = useScrollAnimation(0.1);
 
-  // Generate placeholder images - Landscape orientation (3:2 aspect ratio)
-  const hkPhotos = Array.from({ length: 6 }).map((_, i) => `https://picsum.photos/seed/hk${i}/1000/667`);
-  const jpPhotos = Array.from({ length: 6 }).map((_, i) => `https://picsum.photos/seed/jp${i}/1000/667`);
+  // Generate paths for local images
+  // HK: gallery-hk-1.jpg to gallery-hk-6.jpg
+  const hkPhotos = Array.from({ length: 6 }).map((_, i) => `/images/gallery-hk-${i + 1}.jpg`);
+  
+  // Japan: gallery-jp-1.jpg to gallery-jp-6.jpg
+  const jpPhotos = Array.from({ length: 6 }).map((_, i) => `/images/gallery-jp-${i + 1}.jpg`);
 
   const currentPhotos = activeTab === 'hk' ? hkPhotos : jpPhotos;
 

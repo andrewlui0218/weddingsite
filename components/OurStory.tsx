@@ -8,12 +8,12 @@ interface StoryEvent {
 }
 
 const stories: StoryEvent[] = [
-  { date: '12th May, 2021', title: 'Our first Date!', image: 'https://picsum.photos/seed/story1/600/400' },
-  { date: '25th December, 2021', title: 'Our first Christmas!', image: 'https://picsum.photos/seed/story2/600/400' },
-  { date: '12th October, 2024', title: 'Tottori, Japan', image: 'https://picsum.photos/seed/story3/600/400' },
-  { date: '23rd October, 2024', title: 'Happy Graduation!', image: 'https://picsum.photos/seed/story4/600/400' },
-  { date: '15th November, 2024', title: 'We are engaged!', image: 'https://picsum.photos/seed/story5/600/400' },
-  { date: '25th April, 2026', title: 'Our Big Day!', image: 'https://picsum.photos/seed/story6/600/400' },
+  { date: '12th May, 2021', title: 'Our first Date!', image: '/images/story-1.jpg' },
+  { date: '25th December, 2021', title: 'Our first Christmas!', image: '/images/story-2.jpg' },
+  { date: '12th October, 2024', title: 'Tottori, Japan', image: '/images/story-3.jpg' },
+  { date: '23rd October, 2024', title: 'Happy Graduation!', image: '/images/story-4.jpg' },
+  { date: '15th November, 2024', title: 'We are engaged!', image: '/images/story-5.jpg' },
+  { date: '25th April, 2026', title: 'Our Big Day!', image: '/images/story-6.jpg' },
 ];
 
 const StoryItem: React.FC<{ event: StoryEvent; index: number }> = ({ event, index }) => {
