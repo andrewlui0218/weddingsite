@@ -13,7 +13,6 @@ const EventDetails: React.FC = () => {
   ];
 
   // Calendar Event Details
-  // Date: April 25, 2026, 18:00 HKT (UTC+8) -> 10:00 UTC
   const googleCalendarUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Christy+%26+Andrew+Wedding&dates=20260425T100000Z/20260425T150000Z&details=We+can't+wait+to+celebrate+with+you!%0A%0AReception:+6:00+PM%0ACeremony:+6:30+PM%0ABanquet:+8:00+PM&location=WM+Hotel,+Sai+Kung,+Hong+Kong";
 
   const handleDownloadIcs = () => {
