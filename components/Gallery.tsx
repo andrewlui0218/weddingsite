@@ -159,6 +159,7 @@ const Gallery: React.FC = () => {
                 alt={`Gallery ${activeTab} ${index}`} 
                 className="w-full h-auto transform group-hover:scale-105 transition-transform duration-700 ease-in-out cursor-zoom-in"
                 loading="lazy"
+                decoding="async"
                 onClick={() => openLightbox(index)}
               />
             </div>
