@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
 const Gallery: React.FC = () => {
@@ -81,9 +82,9 @@ const Gallery: React.FC = () => {
     if (!touchStartRef.current || !isDragging) return;
     
     const dx = e.touches[0].clientX - touchStartRef.current.x;
-    const dy = e.touches[0].clientY - touchStartRef.current.y;
+    // We strictly ignore vertical movement (dy) to keep image centered
     
-    setTranslate({ x: dx, y: dy });
+    setTranslate({ x: dx, y: 0 });
   };
 
   const handleTouchEnd = () => {
@@ -91,14 +92,9 @@ const Gallery: React.FC = () => {
     if (!touchStartRef.current) return;
 
     const swipeThreshold = 50;
-    const dismissThreshold = 100;
 
-    // Vertical Swipe -> Close
-    if (Math.abs(translate.y) > dismissThreshold) {
-      closeLightbox();
-    }
     // Horizontal Swipe -> Navigation
-    else if (Math.abs(translate.x) > swipeThreshold) {
+    if (Math.abs(translate.x) > swipeThreshold) {
       if (translate.x > 0) {
         showPrev(); // Swipe Right
       } else {
@@ -170,10 +166,10 @@ const Gallery: React.FC = () => {
         </div>
       </div>
 
-      {/* Lightbox Modal */}
-      {lightboxIndex !== null && (
+      {/* Lightbox Modal - Rendered into body via Portal to ensure full screen coverage */}
+      {lightboxIndex !== null && createPortal(
         <div 
-          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-fade-in"
+          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center animate-fade-in touch-none"
           onClick={closeLightbox}
         >
           {/* Close Button */}
@@ -230,7 +226,8 @@ const Gallery: React.FC = () => {
               {lightboxIndex + 1} / {currentPhotos.length}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );
