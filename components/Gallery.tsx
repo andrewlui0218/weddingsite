@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
 const Gallery: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'hk' | 'japan'>('hk');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // Store index instead of src to enable navigation
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  
+  // Swipe interaction state
+  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const touchStartRef = useRef<{ x: number, y: number } | null>(null);
+
   const { ref, isVisible } = useScrollAnimation(0.1);
 
   // Generate paths for local images
@@ -12,18 +19,101 @@ const Gallery: React.FC = () => {
 
   const currentPhotos = activeTab === 'hk' ? hkPhotos : jpPhotos;
 
-  const openLightbox = (src: string) => {
-    setSelectedImage(src);
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setTranslate({ x: 0, y: 0 });
     document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
   };
 
   const closeLightbox = () => {
-    setSelectedImage(null);
+    setLightboxIndex(null);
+    setTranslate({ x: 0, y: 0 });
     document.body.style.overflow = 'auto'; // Restore scrolling
   };
 
+  const showNext = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (lightboxIndex !== null && lightboxIndex < currentPhotos.length - 1) {
+      setLightboxIndex(lightboxIndex + 1);
+      setTranslate({ x: 0, y: 0 });
+    } else {
+        // Snap back if at end
+        setTranslate({ x: 0, y: 0 });
+    }
+  };
+
+  const showPrev = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (lightboxIndex !== null && lightboxIndex > 0) {
+      setLightboxIndex(lightboxIndex - 1);
+      setTranslate({ x: 0, y: 0 });
+    } else {
+        // Snap back if at start
+        setTranslate({ x: 0, y: 0 });
+    }
+  };
+
+  // Keyboard Navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (lightboxIndex === null) return;
+      
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') showNext();
+      if (e.key === 'ArrowLeft') showPrev();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex]);
+
+  // Touch Handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Only enable swipe if not zoomed (simplification: browser zoom usually handled by browser, 
+    // but here we just track single touch for swipe)
+    if (e.touches.length === 1) {
+        touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        setIsDragging(true);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current || !isDragging) return;
+    
+    const dx = e.touches[0].clientX - touchStartRef.current.x;
+    const dy = e.touches[0].clientY - touchStartRef.current.y;
+    
+    setTranslate({ x: dx, y: dy });
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (!touchStartRef.current) return;
+
+    const swipeThreshold = 50;
+    const dismissThreshold = 100;
+
+    // Vertical Swipe -> Close
+    if (Math.abs(translate.y) > dismissThreshold) {
+      closeLightbox();
+    }
+    // Horizontal Swipe -> Navigation
+    else if (Math.abs(translate.x) > swipeThreshold) {
+      if (translate.x > 0) {
+        showPrev(); // Swipe Right
+      } else {
+        showNext(); // Swipe Left
+      }
+    } 
+    // Not enough movement -> Snap back
+    else {
+      setTranslate({ x: 0, y: 0 });
+    }
+
+    touchStartRef.current = null;
+  };
+
   return (
-    // Changed bg-wedding-bg to bg-white/90
     <section id="pre-wedding" className="py-24 bg-white/90 backdrop-blur-sm" ref={ref}>
       <div className={`max-w-6xl mx-auto px-4 transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         
@@ -54,6 +144,9 @@ const Gallery: React.FC = () => {
           </div>
         </div>
 
+        {/* 
+          Key ensures container remounts on tab change to re-trigger animations.
+        */}
         <div key={activeTab} className="columns-2 md:columns-3 gap-4 space-y-4">
           {currentPhotos.map((src, index) => (
             <div 
@@ -70,7 +163,7 @@ const Gallery: React.FC = () => {
                 alt={`Gallery ${activeTab} ${index}`} 
                 className="w-full h-auto transform group-hover:scale-105 transition-transform duration-700 ease-in-out cursor-zoom-in"
                 loading="lazy"
-                onClick={() => openLightbox(src)}
+                onClick={() => openLightbox(index)}
               />
             </div>
           ))}
@@ -78,24 +171,64 @@ const Gallery: React.FC = () => {
       </div>
 
       {/* Lightbox Modal */}
-      {selectedImage && (
+      {lightboxIndex !== null && (
         <div 
-          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-fade-in"
           onClick={closeLightbox}
         >
-          <div className="relative max-w-7xl max-h-full w-full flex justify-center">
-            <button 
-              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
-              onClick={closeLightbox}
+          {/* Close Button */}
+          <button 
+            className="absolute top-4 right-4 md:top-8 md:right-8 text-white/70 hover:text-white transition-colors z-[110]"
+            onClick={closeLightbox}
+          >
+            <i className="fa-solid fa-xmark text-3xl md:text-5xl drop-shadow-lg"></i>
+          </button>
+
+          {/* Previous Button (Desktop) */}
+          {lightboxIndex > 0 && (
+            <button
+              className="hidden md:block absolute left-8 text-white/50 hover:text-white transition-colors z-[110]"
+              onClick={showPrev}
             >
-              <i className="fa-solid fa-xmark text-4xl"></i>
+              <i className="fa-solid fa-chevron-left text-5xl"></i>
             </button>
+          )}
+
+          {/* Next Button (Desktop) */}
+          {lightboxIndex < currentPhotos.length - 1 && (
+            <button
+              className="hidden md:block absolute right-8 text-white/50 hover:text-white transition-colors z-[110]"
+              onClick={showNext}
+            >
+              <i className="fa-solid fa-chevron-right text-5xl"></i>
+            </button>
+          )}
+
+          {/* Image Container */}
+          <div 
+            className="relative w-full h-full flex items-center justify-center p-4 overflow-hidden"
+            // Attach touch handlers here to capture swipe on screen
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <img 
-              src={selectedImage} 
+              src={currentPhotos[lightboxIndex]} 
               alt="Full view" 
-              className="max-h-[85vh] max-w-full object-contain rounded-lg shadow-2xl animate-zoom-in"
-              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking image
+              className="max-h-[90vh] max-w-full object-contain shadow-2xl select-none"
+              style={{
+                transform: `translate(${translate.x}px, ${translate.y}px)`,
+                transition: isDragging ? 'none' : 'transform 0.3s ease-out',
+                cursor: isDragging ? 'grabbing' : 'grab'
+              }}
+              onClick={(e) => e.stopPropagation()} // Prevent close on image click
+              draggable={false} // Prevent native drag
             />
+            
+            {/* Index Indicator */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/80 font-serif text-lg tracking-widest bg-black/30 px-4 py-1 rounded-full">
+              {lightboxIndex + 1} / {currentPhotos.length}
+            </div>
           </div>
         </div>
       )}
